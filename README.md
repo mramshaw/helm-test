@@ -58,7 +58,7 @@ $
 Having chosen a chart to deploy, the life cycle is as follows:
 
 1. [Helm Init](#helm-init)
-2. [Helm Version](#helm-version)
+2. [Helm Version](#helm-version) [Optional]
 3. [Helm Repo Update](#helm-repo-update)
 4. [Helm Install](#helm-install)
 5. [Helm List](#helm-list)
@@ -101,6 +101,7 @@ Use <kbd>helm version</kbd> to check the local version of Helm.
 
 In order to verify that `helm` is installed and working, we will check it's version:
 
+```bash
 $ helm version
 Client: &version.Version{SemVer:"v2.13.0", GitCommit:"79d07943b03aea2b76c12644b4b54733bc5958d6", GitTreeState:"clean"}
 Server: &version.Version{SemVer:"v2.13.0", GitCommit:"79d07943b03aea2b76c12644b4b54733bc5958d6", GitTreeState:"clean"}
@@ -119,6 +120,8 @@ Hang tight while we grab the latest from your chart repositories...
 Update Complete. ⎈ Happy Helming!⎈
 $
 ```
+
+[This should be carried out from time to time.]
 
 #### Helm Install
 
