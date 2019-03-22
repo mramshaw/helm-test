@@ -2,7 +2,8 @@
 
 Getting familiar with Helm
 
-![Helm Logo](images/helm-logo.svg)
+![Helm Logo](images/helm-logo.png)
+![CNCF Logo](images/logo-CNCF.png)
 
 Helm is way of managing pre-configured software installations - which are known as __charts__ in the Helm community.
 
@@ -576,9 +577,9 @@ Helm can be used to ___create___ Helm Charts:
 2. <kbd>helm package mychart</kbd>
 3. <kbd>helm lint mychart</kbd>
 
-The __create__ command takes an optional <kbd>--starter</kbd> option for specifying a "starter chart".
+The __create__ command can take an optional <kbd>--starter</kbd> option for specifying a "starter chart".
 
-Starter Charts are regular charts, but in template form - and must be stored in $HELM_HOME/starters.
+Starter Charts are regular charts, but in template form - and must be stored in the ~/.helm/starters/ directory.
 
 ## Deployment Life Cycle
 
@@ -744,7 +745,7 @@ Also, the installation displays a number of useful comments (these vary dependin
 
 #### Helm List
 
-Use <kbd>helm ls</kbd> to see what has been released.
+Use <kbd>helm list</kbd> or <kbd>helm ls</kbd> to see what has been released.
 
 This should look as follows:
 
