@@ -57,7 +57,7 @@ $
 
 Having chosen a chart to deploy, the life cycle is as follows:
 
-1. [Helm Init](#helm-init)
+1. [Helm Initialize](#helm-initialize)
 2. [Helm Version](#helm-version) [Optional]
 3. [Helm Repo Update](#helm-repo-update)
 4. [Helm Install](#helm-install)
@@ -66,7 +66,7 @@ Having chosen a chart to deploy, the life cycle is as follows:
 
 Steps 2 and 3 can be repeated as necessary. Step 4 should always be preceded by Step 3.
 
-#### Helm Init
+#### Helm Initialize
 
 This is a one-time requirement and serves to create a local Helm cache.
 
@@ -199,8 +199,7 @@ $
 
 Note that the installation is called `crazy-kudu` and that our ___pods___ are starting.
 
-Also, the installation displays a number of useful comments (these vary depending upon the
- chart, and may not always be present).
+Also, the installation displays a number of useful comments (these vary depending upon the chart).
 
 [It may take some time before everything is up and running.]
 
@@ -218,6 +217,12 @@ $
 ```
 
 [Like Docker, Helm will randomly assign a name to the installation if one is not specified.]
+
+The details for this redis chart may be found at:
+
+    http://github.com/helm/charts/tree/master/stable/redis
+
+For information purposes, the actual [Chart](Chart.yaml) from this repo is included here.
 
 #### Helm Uninstall
 
