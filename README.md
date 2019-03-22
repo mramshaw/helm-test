@@ -6,12 +6,37 @@ Helm is way of managing pre-configured software installations - which are known 
 
 Helm builds upon [Kubernetes](http://kubernetes.io/), which itself builds upon [Docker](http://www.docker.com/).
 
+As of March, 2019 Helm is a [Cloud Native Computing Foundation (CNCF)](https://www.cncf.io/) incubation project
+(Kubernetes was the first project to ___graduate___ from CNCF incubation, in March 2018).
+
 ## Motivation
 
 Having thoroughly investigated [Docker](http://github.com/mramshaw/Docker) and [Kubernetes](http://github.com/mramshaw/Kubernetes),
 of course I had heard of [Helm](http://helm.sh/).
 
 So it seemed like it was finally time to try it out.
+
+## Contents
+
+The contents are as follows:
+
+* [Prequisites](#prequisites)
+* [Helm Components](#helm-components)
+* [Helm Charts](#helm-charts)
+    * [Directory Structure](#directory-structure)
+    * [Finding Helm Charts](#finding-helm-charts)
+    * [Inspecting Helm Charts](#inspecting-helm-charts)
+* [Life Cycle](#life-cycle)
+    * [Helm Initialize](#helm-initialize)
+    * [Helm Version](#helm-version)
+    * [Helm Repo Update](#helm-repo-update)
+    * [Helm Install](#helm-install)
+    * [Helm List](#helm-list)
+    * [Helm Uninstall](#helm-uninstall)
+* [Preparation for Rancher](#preparation-for-rancher)
+* [Versions](#versions)
+* [Reference](#reference)
+* [To Do](#todo)
 
 ## Prequisites
 
@@ -31,7 +56,71 @@ $
 
 [This step requires a started `minikube`.]
 
+## Helm Components
+
+Helm consists of two components:
+
+1. `helm`
+2. `tiller`
+
+[Following the Kubernetes ("helmsman") metaphor, we have a helm and one or more tillers.]
+
+The client, `helm`, is used to manage Helm charts and to manage one or more tillers.
+The server, `tiller`, runs inside one or more Kubernetes clusters and manages the Helm releases.
+
 ## Helm Charts
+
+Helm Charts define Kubernetes resources that will be released to Kubernetes Clusters.
+
+#### Directory structure
+
+Chart directories should have roughly the following structure:
+
+	package-name/
+	  templates/
+	  .helmignore
+	  Chart.yaml
+	  OWNERS
+	  LICENSE
+	  README.md
+	  requirements.lock
+	  requirements.yaml
+	  values.yaml
+
+For `redis-6.4.2.tgz` (stable/redis) the structure is as follows:
+
+```bash
+$ tar tvf ~/.helm/cache/archive/redis-6.4.2.tgz
+-rwxr-xr-x 0/0             563 1969-12-31 19:00 redis/Chart.yaml
+-rwxr-xr-x 0/0           12484 1969-12-31 19:00 redis/values.yaml
+-rwxr-xr-x 0/0            4318 1969-12-31 19:00 redis/templates/NOTES.txt
+-rwxr-xr-x 0/0            9424 1969-12-31 19:00 redis/templates/_helpers.tpl
+-rwxr-xr-x 0/0             839 1969-12-31 19:00 redis/templates/configmap.yaml
+-rwxr-xr-x 0/0            1369 1969-12-31 19:00 redis/templates/health-configmap.yaml
+-rwxr-xr-x 0/0            3199 1969-12-31 19:00 redis/templates/metrics-deployment.yaml
+-rwxr-xr-x 0/0             954 1969-12-31 19:00 redis/templates/metrics-prometheus.yaml
+-rwxr-xr-x 0/0             846 1969-12-31 19:00 redis/templates/metrics-svc.yaml
+-rwxr-xr-x 0/0            1092 1969-12-31 19:00 redis/templates/networkpolicy.yaml
+-rwxr-xr-x 0/0            9485 1969-12-31 19:00 redis/templates/redis-master-statefulset.yaml
+-rwxr-xr-x 0/0             933 1969-12-31 19:00 redis/templates/redis-master-svc.yaml
+-rwxr-xr-x 0/0             384 1969-12-31 19:00 redis/templates/redis-role.yaml
+-rwxr-xr-x 0/0             511 1969-12-31 19:00 redis/templates/redis-rolebinding.yaml
+-rwxr-xr-x 0/0             316 1969-12-31 19:00 redis/templates/redis-serviceaccount.yaml
+-rwxr-xr-x 0/0            7834 1969-12-31 19:00 redis/templates/redis-slave-deployment.yaml
+-rwxr-xr-x 0/0             938 1969-12-31 19:00 redis/templates/redis-slave-svc.yaml
+-rwxr-xr-x 0/0             511 1969-12-31 19:00 redis/templates/secret.yaml
+-rwxr-xr-x 0/0              41 1969-12-31 19:00 redis/.helmignore
+-rwxr-xr-x 0/0           33736 1969-12-31 19:00 redis/README.md
+-rwxr-xr-x 0/0             104 1969-12-31 19:00 redis/ci/default-values.yaml
+-rwxr-xr-x 0/0             104 1969-12-31 19:00 redis/ci/dev-values.yaml
+-rwxr-xr-x 0/0           11171 1969-12-31 19:00 redis/ci/production-values.yaml
+-rwxr-xr-x 0/0             174 1969-12-31 19:00 redis/ci/redis-lib-values.yaml
+-rwxr-xr-x 0/0             114 1969-12-31 19:00 redis/ci/redisgraph-module-values.yaml
+-rwxr-xr-x 0/0           12470 1969-12-31 19:00 redis/values-production.yaml
+$
+```
+
+#### Finding Helm Charts
 
 Find stable charts here:
 
@@ -53,7 +142,432 @@ stable/sensu                    	0.2.3        	0.28       	Sensu monitoring fram
 $
 ```
 
+#### Inspecting Helm Charts
+
+Helm Chart values can be overridden at `helm install` time via the <kbd>--set</kbd> option.
+
+Helm can be used to inspect Helm Charts via <kbd>helm inspect</kbd>.
+
+[If the Helm chart is not available in the local cache, it will be downloaded and stored in the cache.]
+
+This should look as follows:
+
+```bash
+$ helm inspect values stable/redis
+## Global Docker image parameters
+## Please, note that this will override the image parameters, including dependencies, configured to use the global value
+## Current available global Docker image parameters: imageRegistry and imagePullSecrets
+##
+# global:
+#   imageRegistry: myRegistryName
+#   imagePullSecrets:
+#     - myRegistryKeySecretName
+
+## Bitnami Redis image version
+## ref: https://hub.docker.com/r/bitnami/redis/tags/
+##
+image:
+  registry: docker.io
+  repository: bitnami/redis
+  ## Bitnami Redis image tag
+  ## ref: https://github.com/bitnami/bitnami-docker-redis#supported-tags-and-respective-dockerfile-links
+  ##
+  tag: 4.0.14
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+  ##
+  pullPolicy: Always
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  # pullSecrets:
+  #   - myRegistryKeySecretName
+
+## Cluster settings
+cluster:
+  enabled: true
+  slaveCount: 1
+
+networkPolicy:
+  ## Specifies whether a NetworkPolicy should be created
+  ##
+  enabled: false
+
+  ## The Policy model to apply. When set to false, only pods with the correct
+  ## client label will have network access to the port Redis is listening
+  ## on. When true, Redis will accept connections from any source
+  ## (with the correct destination port).
+  ##
+  # allowExternal: true
+
+serviceAccount:
+  ## Specifies whether a ServiceAccount should be created
+  ##
+  create: false
+  ## The name of the ServiceAccount to use.
+  ## If not set and create is true, a name is generated using the fullname template
+  name:
+
+rbac:
+  ## Specifies whether RBAC resources should be created
+  ##
+  create: false
+
+  role:
+    ## Rules to create. It follows the role specification
+    # rules:
+    #  - apiGroups:
+    #    - extensions
+    #    resources:
+    #      - podsecuritypolicies
+    #    verbs:
+    #      - use
+    #    resourceNames:
+    #      - gce.unprivileged
+    rules: []
+
+## Use password authentication
+usePassword: true
+## Redis password (both master and slave)
+## Defaults to a random 10-character alphanumeric string if not set and usePassword is true
+## ref: https://github.com/bitnami/bitnami-docker-redis#setting-the-server-password-on-first-run
+##
+password:
+## Use existing secret (ignores previous password)
+# existingSecret:
+
+## Mount secrets as files instead of environment variables
+usePasswordFile: false
+
+## Persist data to a persistent volume
+persistence: {}
+  ## A manually managed Persistent Volume and Claim
+  ## Requires persistence.enabled: true
+  ## If defined, PVC must be created manually before volume will be bound
+  # existingClaim:
+
+##
+## Redis Master parameters
+##
+master:
+  ## Redis port
+  port: 6379
+  ## Redis command arguments
+  ##
+  ## Can be used to specify command line arguments, for example:
+  ##
+  command: "/run.sh"
+  ## Redis additional command line flags
+  ##
+  ## Can be used to specify command line flags, for example:
+  ##
+  ## extraFlags:
+  ##  - "--maxmemory-policy volatile-ttl"
+  ##  - "--repl-backlog-size 1024mb"
+  extraFlags: []
+  ## Comma-separated list of Redis commands to disable
+  ##
+  ## Can be used to disable Redis commands for security reasons.
+  ## Commands will be completely disabled by renaming each to an empty string.
+  ## ref: https://redis.io/topics/security#disabling-of-specific-commands
+  ##
+  disableCommands:
+  - FLUSHDB
+  - FLUSHALL
+
+  ## Redis Master additional pod labels and annotations
+  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+  podLabels: {}
+  podAnnotations: {}
+
+  ## Redis Master resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  # resources:
+  #   requests:
+  #     memory: 256Mi
+  #     cpu: 100m
+  ## Use an alternate scheduler, e.g. "stork".
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  ##
+  # schedulerName:
+
+  ## Configure extra options for Redis Master liveness and readiness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+  ##
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 5
+    successThreshold: 1
+    failureThreshold: 5
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 5
+
+  ## Redis Master Node selectors and tolerations for pod assignment
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
+  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
+  ##
+  # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
+  # tolerations: []
+  ## Redis Master pod/node affinity/anti-affinity
+  ##
+  affinity: {}
+
+  ## Redis Master Service properties
+  service:
+    ##  Redis Master Service type
+    type: ClusterIP
+    port: 6379
+
+    ## Specify the nodePort value for the LoadBalancer and NodePort service types.
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+    ##
+    # nodePort:
+
+    ## Provide any additional annotations which may be required. This can be used to
+    ## set the LoadBalancer service type to internal only.
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+    ##
+    annotations: {}
+    loadBalancerIP:
+
+  ## Redis Master Pod Security Context
+  securityContext:
+    enabled: true
+    fsGroup: 1001
+    runAsUser: 1001
+
+  ## Enable persistence using Persistent Volume Claims
+  ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+  ##
+  persistence:
+    enabled: true
+    ## The path the volume will be mounted at, useful when using different
+    ## Redis images.
+    path: /data
+    ## The subdirectory of the volume to mount to, useful in dev environments
+    ## and one PV for multiple services.
+    subPath: ""
+    ## redis data Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ##
+    # storageClass: "-"
+    accessModes:
+    - ReadWriteOnce
+    size: 8Gi
+
+  ## Update strategy, can be set to RollingUpdate or onDelete by default.
+  ## https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#updating-statefulsets
+  statefulset:
+    updateStrategy: RollingUpdate
+    ## Partition update strategy
+    ## https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#partitions
+    # rollingUpdatePartition:
+
+  ## Redis Master pod priorityClassName
+  # priorityClassName: {}
+
+
+##
+## Redis Slave properties
+## Note: service.type is a mandatory parameter
+## The rest of the parameters are either optional or, if undefined, will inherit those declared in Redis Master
+##
+slave:
+  ## Slave Service properties
+  service:
+    ## Redis Slave Service type
+    type: ClusterIP
+    ## Specify the nodePort value for the LoadBalancer and NodePort service types.
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+    ##
+    # nodePort:
+
+    ## Provide any additional annotations which may be required. This can be used to
+    ## set the LoadBalancer service type to internal only.
+    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
+    ##
+    annotations: {}
+    loadBalancerIP:
+
+  ## Redis port
+  # port: 6379
+  ## Redis extra flags
+  # extraFlags: []
+  ## List of Redis commands to disable
+  # disableCommands: []
+
+  ## Redis Slave pod/node affinity/anti-affinity
+  ##
+  affinity: {}
+
+  ## Configure extra options for Redis Slave liveness and readiness probes
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
+  ##
+  # livenessProbe:
+  #   enabled: true
+  #   initialDelaySeconds: 30
+  #   periodSeconds: 10
+  #   timeoutSeconds: 5
+  #   successThreshold: 1
+  #   failureThreshold: 5
+  # readinessProbe:
+  #   enabled: true
+  #   initialDelaySeconds: 5
+  #   periodSeconds: 10
+  #   timeoutSeconds: 10
+  #   successThreshold: 1
+  #   failureThreshold: 5
+
+  ## Redis slave Resource
+  # resources:
+  #   requests:
+  #     memory: 256Mi
+  #     cpu: 100m
+
+  ## Redis slave selectors and tolerations for pod assignment
+  # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
+  # tolerations: []
+
+  ## Use an alternate scheduler, e.g. "stork".
+  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+  ##
+  # schedulerName:
+
+  ## Redis slave pod Annotation and Labels
+  # podLabels: {}
+  # podAnnotations: {}
+
+  ## Redis slave pod Security Context
+  # securityContext:
+  #   enabled: true
+  #   fsGroup: 1001
+  #   runAsUser: 1001
+
+  ## Redis slave pod priorityClassName
+  # priorityClassName: {}
+
+## Prometheus Exporter / Metrics
+##
+metrics:
+  enabled: false
+
+  image:
+    registry: docker.io
+    repository: oliver006/redis_exporter
+    tag: v0.28.0
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+
+  service:
+    type: ClusterIP
+    ## Use serviceLoadBalancerIP to request a specific static IP,
+    ## otherwise leave blank
+    # loadBalancerIP:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9121"
+
+  ## Metrics exporter resource requests and limits
+  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+  ##
+  # resources: {}
+
+  ## Extra arguments for Metrics exporter, for example:
+  ## extraArgs:
+  ##   check-keys: myKey,myOtherKey
+  # extraArgs: {}
+
+  ## Metrics exporter labels and tolerations for pod assignment
+  # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
+  # tolerations: []
+
+  ## Metrics exporter pod Annotation and Labels
+  # podAnnotations: {}
+  # podLabels: {}
+
+  # Enable this if you're using https://github.com/coreos/prometheus-operator
+  serviceMonitor:
+    enabled: false
+    ## Specify a namespace if needed
+    # namespace: monitoring
+    # fallback to the prometheus default unless specified
+    # interval: 10s
+    ## Defaults to what's used if you follow CoreOS [Prometheus Install Instructions](https://github.com/helm/charts/tree/master/stable/prometheus-operator#tldr)
+    ## [Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheus-operator-1)
+    ## [Kube Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#exporters)
+    selector:
+      prometheus: kube-prometheus
+
+  ## Metrics exporter pod priorityClassName
+  # priorityClassName: {}
+
+##
+## Init containers parameters:
+## volumePermissions: Change the owner of the persist volume mountpoint to RunAsUser:fsGroup
+##
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: bitnami/minideb
+    tag: latest
+    pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+  resources: {}
+
+## Redis config file
+## ref: https://redis.io/topics/config
+##
+configmap: |-
+  # maxmemory-policy volatile-lru
+
+## Sysctl InitContainer
+## used to perform sysctl operation to modify Kernel settings (needed sometimes to avoid warnings)
+sysctlImage:
+  enabled: false
+  command: []
+  registry: docker.io
+  repository: bitnami/minideb
+  tag: latest
+  pullPolicy: Always
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  # pullSecrets:
+  #   - myRegistryKeySecretName
+  mountHostSys: false
+  resources: {}
+
+$
+```
+
 ## Life Cycle
+
+Much like Docker containers, Helm Charts have a ___life cycle___.
 
 Having chosen a chart to deploy, the life cycle is as follows:
 
@@ -94,6 +608,16 @@ For more information on securing your installation see: https://docs.helm.sh/usi
 Happy Helming!
 $
 ```
+
+Note that this propogates `tiller` to the Kubernetes Cluster.
+
+If `tiller` should __not__ be deployed, this may be specified as follows:
+
+    $ helm init --client-only
+
+Or:
+
+    $ helm init -c
 
 #### Helm Version
 
@@ -262,6 +786,12 @@ $
 * Kubernetes __v1.13.4__
 * minikube __v0.35.0__
 * virtualbox __5.1.38__
+
+## Reference
+
+Helm Charts:
+
+    http://github.com/helm/helm/blob/master/docs/charts.md
 
 ## To Do
 
