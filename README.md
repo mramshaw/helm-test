@@ -3,7 +3,6 @@
 Getting familiar with Helm
 
 ![Helm Logo](images/helm-logo.png)
-![CNCF Logo](images/logo-CNCF.png)
 
 Helm is way of managing pre-configured software installations - which are known as __charts__ in the Helm community.
 
