@@ -2,6 +2,8 @@
 
 Getting familiar with Helm
 
+![Helm Logo](images/helm-logo.svg)
+
 Helm is way of managing pre-configured software installations - which are known as __charts__ in the Helm community.
 
 Helm builds upon [Kubernetes](http://kubernetes.io/), which itself builds upon [Docker](http://www.docker.com/).
@@ -26,7 +28,8 @@ The contents are as follows:
     * [Directory Structure](#directory-structure)
     * [Finding Helm Charts](#finding-helm-charts)
     * [Inspecting Helm Charts](#inspecting-helm-charts)
-* [Life Cycle](#life-cycle)
+* [Development Life Cycle](#development-life-cycle)
+* [Deployment Life Cycle](#deployment-life-cycle)
     * [Helm Initialize](#helm-initialize)
     * [Helm Version](#helm-version)
     * [Helm Repo Update](#helm-repo-update)
@@ -36,7 +39,7 @@ The contents are as follows:
 * [Preparation for Rancher](#preparation-for-rancher)
 * [Versions](#versions)
 * [Reference](#reference)
-* [To Do](#todo)
+* [To Do](#to-do)
 
 ## Prequisites
 
@@ -565,7 +568,19 @@ sysctlImage:
 $
 ```
 
-## Life Cycle
+## Development Life Cycle
+
+Helm can be used to ___create___ Helm Charts:
+
+1. <kbd>helm create mychart</kbd>
+2. <kbd>helm package mychart</kbd>
+3. <kbd>helm lint mychart</kbd>
+
+The __create__ command takes an optional <kbd>--starter</kbd> option for specifying a "starter chart".
+
+Starter Charts are regular charts, but in template form - and must be stored in $HELM_HOME/starters.
+
+## Deployment Life Cycle
 
 Much like Docker containers, Helm Charts have a ___life cycle___.
 
@@ -748,6 +763,15 @@ The details for this redis chart may be found at:
 
 For information purposes, the actual [Chart](Chart.yaml) from this repo is included here.
 
+Use <kbd>helm ls --deleted</kbd> to see what has been uninstalled:
+
+```bash
+$ helm ls --deleted
+NAME      	REVISION	UPDATED                 	STATUS 	CHART      	APP VERSION	NAMESPACE
+crazy-kudu	1       	Thu Mar 21 12:20:56 2019	DELETED	redis-6.4.2	4.0.14     	default
+$
+```
+
 #### Helm Uninstall
 
 Use <kbd>helm delete</kbd> to uninstall a Helm Chart.
@@ -792,6 +816,8 @@ $
 Helm Charts:
 
     http://github.com/helm/helm/blob/master/docs/charts.md
+
+[This should be considered definitive.]
 
 ## To Do
 
