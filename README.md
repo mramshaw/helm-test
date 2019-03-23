@@ -1,8 +1,8 @@
 # helm-test
 
-Getting familiar with Helm
-
 ![Helm Logo](images/helm-logo.png)
+
+Getting familiar with Helm
 
 Helm is way of managing pre-configured software installations - which are known as __charts__ in the Helm community.
 
@@ -26,6 +26,7 @@ The contents are as follows:
 * [Helm Components](#helm-components)
 * [Helm Charts](#helm-charts)
     * [Directory Structure](#directory-structure)
+    * [Adding Bitnami Charts](#adding-bitnami-charts)
     * [Finding Helm Charts](#finding-helm-charts)
     * [Inspecting Helm Charts](#inspecting-helm-charts)
 * [Development Life Cycle](#development-life-cycle)
@@ -123,11 +124,33 @@ $ tar tvf ~/.helm/cache/archive/redis-6.4.2.tgz
 $
 ```
 
+#### Adding Bitnami Charts
+
+In order to be able to search the Bitnami charts, we will add their chart repo.
+
+This should look as follows:
+
+```bash
+$ helm repo add bitnami https://charts.bitnami.com
+"bitnami" has been added to your repositories
+$
+```
+
+We can see the Bitnami charts as follows:
+
+    $ helm search bitnami
+
+And now our search results will include the Bitnami charts.
+
 #### Finding Helm Charts
 
 Find stable charts here:
 
     http://github.com/helm/charts/tree/master/stable
+
+Or search the Bitnami charts (many of which have been upstreamed to helm/charts):
+
+    https://github.com/bitnami/charts
 
 Or at the Helm Hub:
 
@@ -138,12 +161,15 @@ Or as follows:
 ```bash
 $ helm search redis
 NAME                            	CHART VERSION	APP VERSION	DESCRIPTION
+bitnami/redis                   	6.4.3        	4.0.14     	Open source, advanced key-value store. It is often referr...
 stable/prometheus-redis-exporter	1.0.2        	0.28.0     	Prometheus exporter for Redis metrics
 stable/redis                    	6.4.2        	4.0.14     	Open source, advanced key-value store. It is often referr...
 stable/redis-ha                 	3.3.2        	5.0.3      	Highly available Kubernetes implementation of Redis
 stable/sensu                    	0.2.3        	0.28       	Sensu monitoring framework backed by the Redis transport
 $
 ```
+
+[Note that the `bitnami/redis` chart seems to be more up-to-date than the `stable/redis` chart.]
 
 #### Inspecting Helm Charts
 
@@ -573,12 +599,26 @@ $
 Helm can be used to ___create___ Helm Charts:
 
 1. <kbd>helm create mychart</kbd>
-2. <kbd>helm package mychart</kbd>
-3. <kbd>helm lint mychart</kbd>
+2. <kbd>helm lint mychart</kbd>
+3. <kbd>helm package mychart</kbd>
+4. <kbd>helm install mychart</kbd>
+5. [Optional] <kbd>helm update mychart</kbd>
+6. [Optional] <kbd>helm delete mychart</kbd>
+7. [Optional] <kbd>helm rollback mychart</kbd>
+8. [Optional] <kbd>helm ls --deleted</kbd>
+9. [Optional] <kbd>helm delete --purge mychart</kbd>
 
 The __create__ command can take an optional <kbd>--starter</kbd> option for specifying a "starter chart".
 
-Starter Charts are regular charts, but in template form - and must be stored in the ~/.helm/starters/ directory.
+Starter Charts are regular charts, but in template form - and must be stored in the `~/.helm/starters/` directory.
+
+The __package__ command creates a `.tgz` archive of the chart.
+
+Helm tracks revisions so that updates can be rolled-back.
+
+The __list__ command can take an optional <kbd>--deleted</kbd> option for viewing uninstalled charts.
+
+The __delete__ command can take an optional <kbd>--purge</kbd> option for purging uninstalled charts.
 
 ## Deployment Life Cycle
 
@@ -623,6 +663,8 @@ For more information on securing your installation see: https://docs.helm.sh/usi
 Happy Helming!
 $
 ```
+
+The `--history-max` option is specified to prevent the helm history from growing too large.
 
 Note that this propogates `tiller` to the Kubernetes Cluster.
 
@@ -818,6 +860,10 @@ Helm Charts:
     http://github.com/helm/helm/blob/master/docs/charts.md
 
 [This should be considered definitive.]
+
+Creating Helm Charts:
+
+    http://docs.bitnami.com/kubernetes/how-to/create-your-first-helm-chart/
 
 ## To Do
 
