@@ -23,6 +23,7 @@ So it seemed like it was finally time to try it out.
 The contents are as follows:
 
 * [Prequisites](#prequisites)
+* [Installing Helm](#installing-helm)
 * [Helm Components](#helm-components)
 * [Helm Charts](#helm-charts)
     * [Directory Structure](#directory-structure)
@@ -59,6 +60,14 @@ $
 ```
 
 [This step requires a started `minikube`.]
+
+## Installing Helm
+
+Instruction for installing Helm may be found at:
+
+    http://docs.helm.sh/using_helm/#installing-helm
+
+In general it is only necessary to install `helm`: helm itself will deploy `tiller` as needed.
 
 ## Helm Components
 
@@ -618,7 +627,7 @@ Helm tracks revisions so that updates can be rolled-back.
 
 The __list__ command can take an optional <kbd>--deleted</kbd> option for viewing uninstalled charts.
 
-The __delete__ command can take an optional <kbd>--purge</kbd> option for purging uninstalled charts.
+The __delete__ [Uninstall] command can take an optional <kbd>--purge</kbd> option for purging uninstalled charts.
 
 ## Deployment Life Cycle
 
@@ -826,13 +835,29 @@ release "crazy-kudu" deleted
 $
 ```
 
+Once the release has been uninstalled, it will show as `DELETED`.
+
+[The release may still be rolled-back at this point.]
+
+Use <kbd>helm delete --purge</kbd> to completely purge the uninstalled Helm Chart.
+
+This should look as follows:
+
+```bash
+$ helm delete --purge crazy-kudu
+release "crazy-kudu" deleted
+$
+```
+
+[The release can no longer be rolled-back.]
+
 ## Preparation for Rancher
 
 [Rancher](http://rancher.com/) offers a nice GUI for Multi-Cluster Kubernetes Management.
 
 Under the covers Rancher actually uses `helm`, but sometimes a dashboard is handy.
 
-To allow for the possible use of [Rancher](http://rancher.com/) we will add their __stable__ charts:
+To allow for the use of [Rancher](http://github.com/mramshaw/rancher-test) we will add their __stable__ charts:
 
     $ helm repo add rancher-stable https://releases.rancher.com/server-charts/stable
 
@@ -854,6 +879,10 @@ $
 * virtualbox __5.1.38__
 
 ## Reference
+
+Installing Helm:
+
+    http://docs.helm.sh/using_helm/#installing-helm
 
 Helm Charts:
 
