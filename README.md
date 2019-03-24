@@ -31,6 +31,10 @@ The contents are as follows:
     * [Finding Helm Charts](#finding-helm-charts)
     * [Inspecting Helm Charts](#inspecting-helm-charts)
 * [Development Life Cycle](#development-life-cycle)
+    * [helm create](#helm-create)
+    * [helm package](#helm-package)
+    * [helm ls](#helm-ls)
+    * [helm delete](#helm-delete)
 * [Deployment Life Cycle](#deployment-life-cycle)
     * [Helm Initialize](#helm-initialize)
     * [Helm Version](#helm-version)
@@ -63,11 +67,11 @@ $
 
 ## Installing Helm
 
-Instruction for installing Helm may be found at:
+Instructions for installing Helm may be found at:
 
     http://docs.helm.sh/using_helm/#installing-helm
 
-In general it is only necessary to install `helm`: helm itself will deploy `tiller` as needed.
+In general it is only necessary to install `helm` as helm itself will deploy `tiller` as needed.
 
 ## Helm Components
 
@@ -186,7 +190,7 @@ Helm Chart values can be overridden at `helm install` time via the <kbd>--set</k
 
 Helm can be used to inspect Helm Charts via <kbd>helm inspect</kbd>.
 
-[If the Helm chart is not available in the local cache, it will be downloaded and stored in the cache.]
+[If the Helm chart is not available in the local cache, helm will fetch it and store it in the cache.]
 
 This should look as follows:
 
@@ -617,15 +621,47 @@ Helm can be used to ___create___ Helm Charts:
 8. [Optional] <kbd>helm ls --deleted</kbd>
 9. [Optional] <kbd>helm delete --purge mychart</kbd>
 
+#### helm create
+
+The __create__ command can be used to create a base set of Chart files.
+
+This should look as follows:
+
+```bash
+$ helm create test-chart
+Creating test-chart
+$
+```
+
+The files that `helm create` will produce may be viewed at [/test-chart/](test-chart).
+
 The __create__ command can take an optional <kbd>--starter</kbd> option for specifying a "starter chart".
 
 Starter Charts are regular charts, but in template form - and must be stored in the `~/.helm/starters/` directory.
 
+#### helm package
+
 The __package__ command creates a `.tgz` archive of the chart.
+
+This should look as follows:
+
+```bash
+$ helm package test-chart
+Successfully packaged chart and saved it to: /home/owner/Documents/Kubernetes/Helm/helm-test/test-chart-0.1.0.tgz
+$
+```
+
+[The actual file location itself will depend upon where your code is located.]
+
+This archive may be examined at [test-chart-0.1.0.tgz](test-chart-0.1.0.tgz).
 
 Helm tracks revisions so that updates can be rolled-back.
 
-The __list__ command can take an optional <kbd>--deleted</kbd> option for viewing uninstalled charts.
+#### helm ls
+
+The __ls__ or __list__ command can take an optional <kbd>--deleted</kbd> option for viewing uninstalled charts.
+
+#### helm delete
 
 The __delete__ [Uninstall] command can take an optional <kbd>--purge</kbd> option for purging uninstalled charts.
 
