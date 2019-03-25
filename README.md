@@ -32,7 +32,9 @@ The contents are as follows:
     * [Inspecting Helm Charts](#inspecting-helm-charts)
 * [Development Life Cycle](#development-life-cycle)
     * [helm create](#helm-create)
+    * [helm dep update](#helm-dep-update)
     * [helm lint](#helm-lint)
+    * [helm test](#helm-test)
     * [helm package](#helm-package)
     * [helm ls](#helm-ls)
     * [helm delete](#helm-delete)
@@ -112,38 +114,14 @@ Chart directories should have roughly the following structure:
 	  requirements.yaml
 	  values.yaml
 
-For `redis-6.4.2.tgz` (stable/redis) the structure is as follows:
+The `requirements.yaml` and `requirements.lock` files may or may not be needed.
 
-```bash
-$ tar tvf ~/.helm/cache/archive/redis-6.4.2.tgz
--rwxr-xr-x 0/0             563 1969-12-31 19:00 redis/Chart.yaml
--rwxr-xr-x 0/0           12484 1969-12-31 19:00 redis/values.yaml
--rwxr-xr-x 0/0            4318 1969-12-31 19:00 redis/templates/NOTES.txt
--rwxr-xr-x 0/0            9424 1969-12-31 19:00 redis/templates/_helpers.tpl
--rwxr-xr-x 0/0             839 1969-12-31 19:00 redis/templates/configmap.yaml
--rwxr-xr-x 0/0            1369 1969-12-31 19:00 redis/templates/health-configmap.yaml
--rwxr-xr-x 0/0            3199 1969-12-31 19:00 redis/templates/metrics-deployment.yaml
--rwxr-xr-x 0/0             954 1969-12-31 19:00 redis/templates/metrics-prometheus.yaml
--rwxr-xr-x 0/0             846 1969-12-31 19:00 redis/templates/metrics-svc.yaml
--rwxr-xr-x 0/0            1092 1969-12-31 19:00 redis/templates/networkpolicy.yaml
--rwxr-xr-x 0/0            9485 1969-12-31 19:00 redis/templates/redis-master-statefulset.yaml
--rwxr-xr-x 0/0             933 1969-12-31 19:00 redis/templates/redis-master-svc.yaml
--rwxr-xr-x 0/0             384 1969-12-31 19:00 redis/templates/redis-role.yaml
--rwxr-xr-x 0/0             511 1969-12-31 19:00 redis/templates/redis-rolebinding.yaml
--rwxr-xr-x 0/0             316 1969-12-31 19:00 redis/templates/redis-serviceaccount.yaml
--rwxr-xr-x 0/0            7834 1969-12-31 19:00 redis/templates/redis-slave-deployment.yaml
--rwxr-xr-x 0/0             938 1969-12-31 19:00 redis/templates/redis-slave-svc.yaml
--rwxr-xr-x 0/0             511 1969-12-31 19:00 redis/templates/secret.yaml
--rwxr-xr-x 0/0              41 1969-12-31 19:00 redis/.helmignore
--rwxr-xr-x 0/0           33736 1969-12-31 19:00 redis/README.md
--rwxr-xr-x 0/0             104 1969-12-31 19:00 redis/ci/default-values.yaml
--rwxr-xr-x 0/0             104 1969-12-31 19:00 redis/ci/dev-values.yaml
--rwxr-xr-x 0/0           11171 1969-12-31 19:00 redis/ci/production-values.yaml
--rwxr-xr-x 0/0             174 1969-12-31 19:00 redis/ci/redis-lib-values.yaml
--rwxr-xr-x 0/0             114 1969-12-31 19:00 redis/ci/redisgraph-module-values.yaml
--rwxr-xr-x 0/0           12470 1969-12-31 19:00 redis/values-production.yaml
-$
-```
+Much like a `requirements.txt` file in a Python project, the `requirements.yaml`
+file is used to list project dependencies (if there are any - which there may not be).
+
+Running a <kbd>helm dep update mychart</kbd> command will generate a `requirements.lock`
+file (which should be checked into any code repositories along with the `requirements.yaml`
+file).
 
 #### Adding Bitnami Charts
 
@@ -213,404 +191,7 @@ $ helm inspect values stable/redis
 #   imagePullSecrets:
 #     - myRegistryKeySecretName
 
-## Bitnami Redis image version
-## ref: https://hub.docker.com/r/bitnami/redis/tags/
-##
-image:
-  registry: docker.io
-  repository: bitnami/redis
-  ## Bitnami Redis image tag
-  ## ref: https://github.com/bitnami/bitnami-docker-redis#supported-tags-and-respective-dockerfile-links
-  ##
-  tag: 4.0.14
-  ## Specify a imagePullPolicy
-  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
-  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
-  ##
-  pullPolicy: Always
-  ## Optionally specify an array of imagePullSecrets.
-  ## Secrets must be manually created in the namespace.
-  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-  ##
-  # pullSecrets:
-  #   - myRegistryKeySecretName
-
-## Cluster settings
-cluster:
-  enabled: true
-  slaveCount: 1
-
-networkPolicy:
-  ## Specifies whether a NetworkPolicy should be created
-  ##
-  enabled: false
-
-  ## The Policy model to apply. When set to false, only pods with the correct
-  ## client label will have network access to the port Redis is listening
-  ## on. When true, Redis will accept connections from any source
-  ## (with the correct destination port).
-  ##
-  # allowExternal: true
-
-serviceAccount:
-  ## Specifies whether a ServiceAccount should be created
-  ##
-  create: false
-  ## The name of the ServiceAccount to use.
-  ## If not set and create is true, a name is generated using the fullname template
-  name:
-
-rbac:
-  ## Specifies whether RBAC resources should be created
-  ##
-  create: false
-
-  role:
-    ## Rules to create. It follows the role specification
-    # rules:
-    #  - apiGroups:
-    #    - extensions
-    #    resources:
-    #      - podsecuritypolicies
-    #    verbs:
-    #      - use
-    #    resourceNames:
-    #      - gce.unprivileged
-    rules: []
-
-## Use password authentication
-usePassword: true
-## Redis password (both master and slave)
-## Defaults to a random 10-character alphanumeric string if not set and usePassword is true
-## ref: https://github.com/bitnami/bitnami-docker-redis#setting-the-server-password-on-first-run
-##
-password:
-## Use existing secret (ignores previous password)
-# existingSecret:
-
-## Mount secrets as files instead of environment variables
-usePasswordFile: false
-
-## Persist data to a persistent volume
-persistence: {}
-  ## A manually managed Persistent Volume and Claim
-  ## Requires persistence.enabled: true
-  ## If defined, PVC must be created manually before volume will be bound
-  # existingClaim:
-
-##
-## Redis Master parameters
-##
-master:
-  ## Redis port
-  port: 6379
-  ## Redis command arguments
-  ##
-  ## Can be used to specify command line arguments, for example:
-  ##
-  command: "/run.sh"
-  ## Redis additional command line flags
-  ##
-  ## Can be used to specify command line flags, for example:
-  ##
-  ## extraFlags:
-  ##  - "--maxmemory-policy volatile-ttl"
-  ##  - "--repl-backlog-size 1024mb"
-  extraFlags: []
-  ## Comma-separated list of Redis commands to disable
-  ##
-  ## Can be used to disable Redis commands for security reasons.
-  ## Commands will be completely disabled by renaming each to an empty string.
-  ## ref: https://redis.io/topics/security#disabling-of-specific-commands
-  ##
-  disableCommands:
-  - FLUSHDB
-  - FLUSHALL
-
-  ## Redis Master additional pod labels and annotations
-  ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-  podLabels: {}
-  podAnnotations: {}
-
-  ## Redis Master resource requests and limits
-  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  # resources:
-  #   requests:
-  #     memory: 256Mi
-  #     cpu: 100m
-  ## Use an alternate scheduler, e.g. "stork".
-  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
-  ##
-  # schedulerName:
-
-  ## Configure extra options for Redis Master liveness and readiness probes
-  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
-  ##
-  livenessProbe:
-    enabled: true
-    initialDelaySeconds: 5
-    periodSeconds: 5
-    timeoutSeconds: 5
-    successThreshold: 1
-    failureThreshold: 5
-  readinessProbe:
-    enabled: true
-    initialDelaySeconds: 5
-    periodSeconds: 5
-    timeoutSeconds: 1
-    successThreshold: 1
-    failureThreshold: 5
-
-  ## Redis Master Node selectors and tolerations for pod assignment
-  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#nodeselector
-  ## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#taints-and-tolerations-beta-feature
-  ##
-  # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
-  # tolerations: []
-  ## Redis Master pod/node affinity/anti-affinity
-  ##
-  affinity: {}
-
-  ## Redis Master Service properties
-  service:
-    ##  Redis Master Service type
-    type: ClusterIP
-    port: 6379
-
-    ## Specify the nodePort value for the LoadBalancer and NodePort service types.
-    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
-    ##
-    # nodePort:
-
-    ## Provide any additional annotations which may be required. This can be used to
-    ## set the LoadBalancer service type to internal only.
-    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
-    ##
-    annotations: {}
-    loadBalancerIP:
-
-  ## Redis Master Pod Security Context
-  securityContext:
-    enabled: true
-    fsGroup: 1001
-    runAsUser: 1001
-
-  ## Enable persistence using Persistent Volume Claims
-  ## ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
-  ##
-  persistence:
-    enabled: true
-    ## The path the volume will be mounted at, useful when using different
-    ## Redis images.
-    path: /data
-    ## The subdirectory of the volume to mount to, useful in dev environments
-    ## and one PV for multiple services.
-    subPath: ""
-    ## redis data Persistent Volume Storage Class
-    ## If defined, storageClassName: <storageClass>
-    ## If set to "-", storageClassName: "", which disables dynamic provisioning
-    ## If undefined (the default) or set to null, no storageClassName spec is
-    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-    ##   GKE, AWS & OpenStack)
-    ##
-    # storageClass: "-"
-    accessModes:
-    - ReadWriteOnce
-    size: 8Gi
-
-  ## Update strategy, can be set to RollingUpdate or onDelete by default.
-  ## https://kubernetes.io/docs/tutorials/stateful-application/basic-stateful-set/#updating-statefulsets
-  statefulset:
-    updateStrategy: RollingUpdate
-    ## Partition update strategy
-    ## https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#partitions
-    # rollingUpdatePartition:
-
-  ## Redis Master pod priorityClassName
-  # priorityClassName: {}
-
-
-##
-## Redis Slave properties
-## Note: service.type is a mandatory parameter
-## The rest of the parameters are either optional or, if undefined, will inherit those declared in Redis Master
-##
-slave:
-  ## Slave Service properties
-  service:
-    ## Redis Slave Service type
-    type: ClusterIP
-    ## Specify the nodePort value for the LoadBalancer and NodePort service types.
-    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
-    ##
-    # nodePort:
-
-    ## Provide any additional annotations which may be required. This can be used to
-    ## set the LoadBalancer service type to internal only.
-    ## ref: https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer
-    ##
-    annotations: {}
-    loadBalancerIP:
-
-  ## Redis port
-  # port: 6379
-  ## Redis extra flags
-  # extraFlags: []
-  ## List of Redis commands to disable
-  # disableCommands: []
-
-  ## Redis Slave pod/node affinity/anti-affinity
-  ##
-  affinity: {}
-
-  ## Configure extra options for Redis Slave liveness and readiness probes
-  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
-  ##
-  # livenessProbe:
-  #   enabled: true
-  #   initialDelaySeconds: 30
-  #   periodSeconds: 10
-  #   timeoutSeconds: 5
-  #   successThreshold: 1
-  #   failureThreshold: 5
-  # readinessProbe:
-  #   enabled: true
-  #   initialDelaySeconds: 5
-  #   periodSeconds: 10
-  #   timeoutSeconds: 10
-  #   successThreshold: 1
-  #   failureThreshold: 5
-
-  ## Redis slave Resource
-  # resources:
-  #   requests:
-  #     memory: 256Mi
-  #     cpu: 100m
-
-  ## Redis slave selectors and tolerations for pod assignment
-  # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
-  # tolerations: []
-
-  ## Use an alternate scheduler, e.g. "stork".
-  ## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
-  ##
-  # schedulerName:
-
-  ## Redis slave pod Annotation and Labels
-  # podLabels: {}
-  # podAnnotations: {}
-
-  ## Redis slave pod Security Context
-  # securityContext:
-  #   enabled: true
-  #   fsGroup: 1001
-  #   runAsUser: 1001
-
-  ## Redis slave pod priorityClassName
-  # priorityClassName: {}
-
-## Prometheus Exporter / Metrics
-##
-metrics:
-  enabled: false
-
-  image:
-    registry: docker.io
-    repository: oliver006/redis_exporter
-    tag: v0.28.0
-    pullPolicy: IfNotPresent
-    ## Optionally specify an array of imagePullSecrets.
-    ## Secrets must be manually created in the namespace.
-    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-    ##
-    # pullSecrets:
-    #   - myRegistryKeySecretName
-
-  service:
-    type: ClusterIP
-    ## Use serviceLoadBalancerIP to request a specific static IP,
-    ## otherwise leave blank
-    # loadBalancerIP:
-    annotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: "9121"
-
-  ## Metrics exporter resource requests and limits
-  ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
-  ##
-  # resources: {}
-
-  ## Extra arguments for Metrics exporter, for example:
-  ## extraArgs:
-  ##   check-keys: myKey,myOtherKey
-  # extraArgs: {}
-
-  ## Metrics exporter labels and tolerations for pod assignment
-  # nodeSelector: {"beta.kubernetes.io/arch": "amd64"}
-  # tolerations: []
-
-  ## Metrics exporter pod Annotation and Labels
-  # podAnnotations: {}
-  # podLabels: {}
-
-  # Enable this if you're using https://github.com/coreos/prometheus-operator
-  serviceMonitor:
-    enabled: false
-    ## Specify a namespace if needed
-    # namespace: monitoring
-    # fallback to the prometheus default unless specified
-    # interval: 10s
-    ## Defaults to what's used if you follow CoreOS [Prometheus Install Instructions](https://github.com/helm/charts/tree/master/stable/prometheus-operator#tldr)
-    ## [Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#prometheus-operator-1)
-    ## [Kube Prometheus Selector Label](https://github.com/helm/charts/tree/master/stable/prometheus-operator#exporters)
-    selector:
-      prometheus: kube-prometheus
-
-  ## Metrics exporter pod priorityClassName
-  # priorityClassName: {}
-
-##
-## Init containers parameters:
-## volumePermissions: Change the owner of the persist volume mountpoint to RunAsUser:fsGroup
-##
-volumePermissions:
-  enabled: false
-  image:
-    registry: docker.io
-    repository: bitnami/minideb
-    tag: latest
-    pullPolicy: IfNotPresent
-    ## Optionally specify an array of imagePullSecrets.
-    ## Secrets must be manually created in the namespace.
-    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-    ##
-    # pullSecrets:
-    #   - myRegistryKeySecretName
-  resources: {}
-
-## Redis config file
-## ref: https://redis.io/topics/config
-##
-configmap: |-
-  # maxmemory-policy volatile-lru
-
-## Sysctl InitContainer
-## used to perform sysctl operation to modify Kernel settings (needed sometimes to avoid warnings)
-sysctlImage:
-  enabled: false
-  command: []
-  registry: docker.io
-  repository: bitnami/minideb
-  tag: latest
-  pullPolicy: Always
-  ## Optionally specify an array of imagePullSecrets.
-  ## Secrets must be manually created in the namespace.
-  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
-  ##
-  # pullSecrets:
-  #   - myRegistryKeySecretName
-  mountHostSys: false
-  resources: {}
+<...>
 
 $
 ```
@@ -620,7 +201,9 @@ $
 Helm can be used to ___create___ Helm Charts:
 
 1. <kbd>helm create mychart</kbd>
+5. [Optional] <kbd>helm dep update mychart</kbd>
 2. <kbd>helm lint mychart</kbd>
+2. <kbd>helm test mychart</kbd>
 3. <kbd>helm package mychart</kbd>
 4. <kbd>helm install mychart</kbd>
 5. [Optional] <kbd>helm update mychart</kbd>
@@ -647,6 +230,15 @@ The __create__ command can take an optional <kbd>--starter</kbd> option for spec
 
 Starter Charts are regular charts, but in template form - and must be stored in the `~/.helm/starters/` directory.
 
+#### helm dep update
+
+This step is only needed if there are any project dependencies. These may be specified
+in a `requirements.yaml` file.
+
+Running a <kbd>helm dep update mychart</kbd> command will then generate a `requirements.lock`
+file (this file should be checked into any code repositories along with the `requirements.yaml`
+file).
+
 #### helm lint
 
 The __lint__ command can be used to check for possible errors and/or omissions.
@@ -662,9 +254,77 @@ $ helm lint test-chart
 $
 ```
 
-[As our chart has no serious issues, we can bundle it up.]
+[As our chart has no serious issues, we can "dry run" an install (requires a started `minikube`):
+
+```bash
+$ helm install --dry-run --debug test-chart
+[debug] Created tunnel using local port: '42227'
+
+[debug] SERVER: "127.0.0.1:42227"
+
+[debug] Original chart version: ""
+[debug] CHART PATH: /home/owner/Documents/Kubernetes/Helm/helm-test/test-chart
+
+NAME:   nobby-parrot
+REVISION: 1
+RELEASED: Mon Mar 25 09:06:57 2019
+CHART: test-chart-0.1.0
+USER-SUPPLIED VALUES:
+
+<...>
+
+$
+```
+
+[As our chart will install, we can install and test it.]
+
+    $ helm install --name mychart --debug test-chart
+
+This should look as follows:
+
+```bash
+$ helm install --name mychart --debug test-chart
+[debug] Created tunnel using local port: '46214'
+
+[debug] SERVER: "127.0.0.1:46214"
+
+[debug] Original chart version: ""
+[debug] CHART PATH: /home/owner/Documents/Kubernetes/Helm/helm-test/test-chart
+
+NAME:   mychart
+REVISION: 1
+RELEASED: Mon Mar 25 09:41:00 2019
+CHART: test-chart-0.1.0
+
+<...>
+
+NOTES:
+1. Get the application URL by running these commands:
+  export POD_NAME=$(kubectl get pods --namespace default -l "app.kubernetes.io/name=test-chart,app.kubernetes.io/instance=mychart" -o jsonpath="{.items[0].metadata.name}")
+  echo "Visit http://127.0.0.1:8080 to use your application"
+  kubectl port-forward $POD_NAME 8080:80
+
+$
+```
+
+#### helm test
+
+Once our chart is installed, we can test it:
+
+    $ helm test my-chart
+
+This should look as follows:
+
+```bash
+$ helm test mychart
+RUNNING: mychart-test-chart-test-connection
+PASSED: mychart-test-chart-test-connection
+$
+```
 
 #### helm package
+
+Once we have successfully tested our chart, we can bundle it up for community use.
 
 The __package__ command creates a `.tgz` archive of the chart.
 
@@ -869,6 +529,12 @@ Also, the installation displays a number of useful comments (these vary dependin
 
 [It may take some time before everything is up and running.]
 
+The __install__ command also has <kbd>--dry-run</kbd> and <kbd>--debug</kbd> options.
+
+The __install__ command also allows for overriding default values via the <kbd>--set</kbd> option, such as:
+
+    $ helm install testchart --set replicaCount=3
+
 #### Helm List
 
 Use <kbd>helm list</kbd> or <kbd>helm ls</kbd> (the short form) to see what has been released.
@@ -969,6 +635,18 @@ Helm Charts:
 Creating Helm Charts:
 
     http://docs.bitnami.com/kubernetes/how-to/create-your-first-helm-chart/
+
+Testing Helm Charts:
+
+    http://github.com/helm/helm/blob/master/docs/chart_tests.md
+
+[This should be considered definitive.]
+
+Signing Helm Charts:
+
+    http://github.com/helm/helm/blob/master/docs/provenance.md
+
+[This should be considered definitive.]
 
 ## To Do
 
