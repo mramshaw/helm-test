@@ -155,7 +155,7 @@ Or at the Helm Hub:
 
     http://hub.helm.sh
 
-Or as follows:
+Or by using <kbd>helm search</kbd>, as follows:
 
 ```bash
 $ helm search redis
@@ -226,18 +226,39 @@ $
 
 The files that `helm create` will produce may be viewed at [/test-chart/](test-chart).
 
-The __create__ command can take an optional <kbd>--starter</kbd> option for specifying a "starter chart".
+The __create__ command can take an optional <kbd>--starter</kbd> parameter for specifying a "starter chart".
 
 Starter Charts are regular charts, but in template form - and must be stored in the `~/.helm/starters/` directory.
 
 #### helm dep update
 
 This step is only needed if there are any project dependencies. These may be specified
-in a `requirements.yaml` file.
+in a [requirements.yaml](test-chart/requirements.yaml) file.
 
 Running a <kbd>helm dep update mychart</kbd> command will then generate a `requirements.lock`
 file (this file should be checked into any code repositories along with the `requirements.yaml`
 file).
+
+Any specified chart packages will be fetched and stored in the `/charts/` folder. In general
+this folder should *not* be checked into any code repositories, however it may be a site
+paractice to do so.
+
+This should look as follows:
+
+```bash
+$ helm dep update test-chart
+Hang tight while we grab the latest from your chart repositories...
+...Unable to get an update from the "local" chart repository (http://127.0.0.1:8879/charts):
+	Get http://127.0.0.1:8879/charts/index.yaml: dial tcp 127.0.0.1:8879: connect: connection refused
+...Successfully got an update from the "rancher-stable" chart repository
+...Successfully got an update from the "bitnami" chart repository
+...Successfully got an update from the "stable" chart repository
+Update Complete. ⎈Happy Helming!⎈
+Saving 1 charts
+Downloading redis from repo https://kubernetes-charts.storage.googleapis.com
+Deleting outdated charts
+$
+```
 
 #### helm lint
 
@@ -326,12 +347,24 @@ $
 
 Once we have successfully tested our chart, we can bundle it up for community use.
 
-The __package__ command creates a `.tgz` archive of the chart.
+The __package__ command creates a `.tgz` archive of the chart. It can take an optional
+<kbd>--dependency-update</kbd> parameter to update any dependencies (it is probaably a
+___best practice___ to specify this - even if there aren't any dependencies).
 
 This should look as follows:
 
 ```bash
-$ helm package test-chart
+$ helm package --dependency-update test-chart
+Hang tight while we grab the latest from your chart repositories...
+...Unable to get an update from the "local" chart repository (http://127.0.0.1:8879/charts):
+	Get http://127.0.0.1:8879/charts/index.yaml: dial tcp 127.0.0.1:8879: connect: connection refused
+...Successfully got an update from the "rancher-stable" chart repository
+...Successfully got an update from the "bitnami" chart repository
+...Successfully got an update from the "stable" chart repository
+Update Complete. ⎈Happy Helming!⎈
+Saving 1 charts
+Downloading redis from repo https://kubernetes-charts.storage.googleapis.com
+Deleting outdated charts
 Successfully packaged chart and saved it to: /home/owner/Documents/Kubernetes/Helm/helm-test/test-chart-0.1.0.tgz
 $
 ```
@@ -344,11 +377,11 @@ Helm tracks revisions so that updates can be rolled-back.
 
 #### helm ls
 
-The __ls__ or __list__ command can take an optional <kbd>--deleted</kbd> option for viewing uninstalled charts.
+The __ls__ or __list__ command can take an optional <kbd>--deleted</kbd> parameter for viewing uninstalled charts.
 
 #### helm delete
 
-The __delete__ [Uninstall] command can take an optional <kbd>--purge</kbd> option for purging uninstalled charts.
+The __delete__ [Uninstall] command can take an optional <kbd>--purge</kbd> parameter for purging uninstalled charts.
 
 ## Deployment Life Cycle
 
