@@ -23,8 +23,8 @@ So it seemed like it was finally time to try it out.
 The contents are as follows:
 
 * [Prequisites](#prequisites)
-* [Installing Helm](#installing-helm)
 * [Helm Components](#helm-components)
+* [Installing Helm](#installing-helm)
 * [Helm Charts](#helm-charts)
     * [Directory Structure](#directory-structure)
     * [Adding Bitnami Charts](#adding-bitnami-charts)
@@ -32,6 +32,7 @@ The contents are as follows:
     * [Inspecting Helm Charts](#inspecting-helm-charts)
 * [Development Life Cycle](#development-life-cycle)
     * [helm create](#helm-create)
+    * [helm lint](#helm-lint)
     * [helm package](#helm-package)
     * [helm ls](#helm-ls)
     * [helm delete](#helm-delete)
@@ -65,14 +66,6 @@ $
 
 [This step requires a started `minikube`.]
 
-## Installing Helm
-
-Instructions for installing Helm may be found at:
-
-    http://docs.helm.sh/using_helm/#installing-helm
-
-In general it is only necessary to install `helm` as helm itself will deploy `tiller` as needed.
-
 ## Helm Components
 
 Helm consists of two components:
@@ -85,9 +78,24 @@ Helm consists of two components:
 The client, `helm`, is used to manage Helm charts and to manage one or more tillers.
 The server, `tiller`, runs inside one or more Kubernetes clusters and manages the Helm releases.
 
+## Installing Helm
+
+Instructions for installing Helm may be found at:
+
+    http://docs.helm.sh/using_helm/#installing-helm
+
+In general it is only necessary to install `helm` as helm itself will deploy `tiller` as needed.
+
 ## Helm Charts
 
 Helm Charts define Kubernetes resources that will be released to Kubernetes Clusters.
+
+The `Chart.yaml` file should provide a high-level summary of the chart.
+
+Important values (apart from secrets) should be stored in the `values.yaml` file.
+
+Useful runtime information should go in the `templates/Notes.txt` file (these notes
+will be displayed once the chart is installed).
 
 #### Directory structure
 
@@ -639,6 +647,23 @@ The __create__ command can take an optional <kbd>--starter</kbd> option for spec
 
 Starter Charts are regular charts, but in template form - and must be stored in the `~/.helm/starters/` directory.
 
+#### helm lint
+
+The __lint__ command can be used to check for possible errors and/or omissions.
+
+For our simple test chart, this looks as follows:
+
+```bash
+$ helm lint test-chart
+==> Linting test-chart
+[INFO] Chart.yaml: icon is recommended
+
+1 chart(s) linted, no failures
+$
+```
+
+[As our chart has no serious issues, we can bundle it up.]
+
 #### helm package
 
 The __package__ command creates a `.tgz` archive of the chart.
@@ -713,6 +738,19 @@ The `--history-max` option is specified to prevent the helm history from growing
 
 Note that this propogates `tiller` to the Kubernetes Cluster.
 
+We can query for the presence of a running `tiller` as follows (requires a started `minikube`):
+
+```bash
+$ kubectl get deployments --namespace kube-system
+NAME                   DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+coredns                2         2         2            2           3d
+kubernetes-dashboard   1         1         1            1           3d
+tiller-deploy          1         1         1            1           3d
+$
+```
+
+And there we see a running __tiller-deploy__.
+
 If `tiller` should __not__ be deployed, this may be specified as follows:
 
     $ helm init --client-only
@@ -733,6 +771,8 @@ Client: &version.Version{SemVer:"v2.13.0", GitCommit:"79d07943b03aea2b76c12644b4
 Server: &version.Version{SemVer:"v2.13.0", GitCommit:"79d07943b03aea2b76c12644b4b54733bc5958d6", GitTreeState:"clean"}
 $
 ```
+
+[This step requires a started `minikube` - or else the Server will be unreachable.]
 
 #### Helm Repo Update
 
@@ -831,7 +871,7 @@ Also, the installation displays a number of useful comments (these vary dependin
 
 #### Helm List
 
-Use <kbd>helm list</kbd> or <kbd>helm ls</kbd> to see what has been released.
+Use <kbd>helm list</kbd> or <kbd>helm ls</kbd> (the short form) to see what has been released.
 
 This should look as follows:
 
