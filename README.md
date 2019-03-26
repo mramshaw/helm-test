@@ -104,6 +104,7 @@ will be displayed once the chart is installed).
 Chart directories should have roughly the following structure:
 
 	package-name/
+	  charts/
 	  templates/
 	  .helmignore
 	  Chart.yaml
@@ -114,7 +115,8 @@ Chart directories should have roughly the following structure:
 	  requirements.yaml
 	  values.yaml
 
-The `requirements.yaml` and `requirements.lock` files may or may not be needed.
+The `charts/` folder and the `requirements.yaml` and `requirements.lock` files may or
+may not be needed.
 
 Much like a `requirements.txt` file in a Python project, the `requirements.yaml`
 file is used to list project dependencies (if there are any - which there may not be).
@@ -122,6 +124,10 @@ file is used to list project dependencies (if there are any - which there may no
 Running a <kbd>helm dep update mychart</kbd> command will generate a `requirements.lock`
 file (which should be checked into any code repositories along with the `requirements.yaml`
 file).
+
+Any specified chart packages will be fetched and stored in the `/charts/` folder. In general
+this folder should ___not___ be checked into any code repositories, however it may be a site
+practice to do so.
 
 #### Adding Bitnami Charts
 
@@ -240,8 +246,8 @@ file (this file should be checked into any code repositories along with the `req
 file).
 
 Any specified chart packages will be fetched and stored in the `/charts/` folder. In general
-this folder should *not* be checked into any code repositories, however it may be a site
-paractice to do so.
+this folder should ___not___ be checked into any code repositories, however it may be a site
+practice to do so.
 
 This should look as follows:
 
@@ -301,7 +307,7 @@ $
 
     $ helm install --name mychart --debug test-chart
 
-This should look as follows:
+The install should look as follows:
 
 ```bash
 $ helm install --name mychart --debug test-chart
